@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Tribu">
+<meta name="theme-color" content="#ffffff">
+<title>Tribu</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f2;--card:#fff;--text:#1a1a1a;--muted:#888;--border:#e5e3dc;
+  --red-bg:#fce8e8;--red:#9b2020;
+  --amber-bg:#fef3db;--amber:#8a5000;
+  --green-bg:#e8f5e8;--green:#276627;
+  --kern:#7c3aed;--kern-bg:#f3eeff;
+  --close:#0369a1;--close-bg:#e8f4ff;
+  --comp:#374151;--comp-bg:#f3f4f6;
+  --accent:#1a1a1a;--radius:14px;
+  --sb:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#111110;--card:#1c1c1a;--text:#f0ede8;--muted:#666;--border:#2a2a28;
+  --red-bg:#2a1212;--red:#f08080;
+  --amber-bg:#261e0a;--amber:#e0a040;
+  --green-bg:#0f2010;--green:#70c070;
+  --kern:#a78bfa;--kern-bg:#1e1530;
+  --close:#60a5fa;--close-bg:#0d1e30;
+  --comp:#9ca3af;--comp-bg:#1e1e1c;
+  --accent:#f0ede8;
+}}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Text',system-ui,sans-serif}
+body{display:flex;flex-direction:column;overflow:hidden}
+.hdr{padding:52px 18px 0;background:var(--card);position:sticky;top:0;z-index:20;display:flex;align-items:flex-end;justify-content:space-between}
+.hdr-l .ht{font-size:20px;font-weight:700;letter-spacing:-.4px}
+.hdr-l .hs{font-size:12px;color:var(--muted);padding-bottom:10px;margin-top:1px}
+.add-btn{width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--bg);border:none;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:10px;-webkit-tap-highlight-color:transparent}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.tab{flex:1;padding:10px 2px 11px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;display:flex;flex-direction:column;align-items:center;gap:3px;-webkit-tap-highlight-color:transparent;transition:color .15s}
+.tab.on{color:var(--text);border-bottom-color:var(--accent)}
+.tab-dot{width:5px;height:5px;border-radius:50%;background:var(--red);opacity:0}
+.tab.urgent .tab-dot{opacity:1}
+.tab-row{display:flex;align-items:center;gap:4px}
+.tab-gd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.page{display:none;flex:1;overflow-y:auto;padding:0 15px calc(var(--sb) + 24px)}
+.page.on{display:block}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:13px 0 4px}
+.stat{background:var(--card);border-radius:12px;padding:10px;text-align:center;border:0.5px solid var(--border)}
+.stat-n{font-size:22px;font-weight:700}
+.stat-l{font-size:10px;color:var(--muted);margin-top:1px}
+.stat.r .stat-n{color:var(--red)}
+.stat.a .stat-n{color:var(--amber)}
+.stat.g .stat-n{color:var(--green)}
+.sl{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;padding:13px 3px 6px;display:flex;align-items:center;justify-content:space-between}
+.sl-count{font-weight:400;text-transform:none;letter-spacing:0}
+.dunbar-warn{background:var(--amber-bg);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--amber);margin-bottom:10px}
+.stat-filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:12px 0 4px}
+.sf-btn{padding:10px 4px;border-radius:12px;border:0.5px solid var(--border);background:var(--card);font-size:12px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.sf-r{color:var(--red)}
+.sf-a{color:var(--amber)}
+.sf-g{color:var(--green)}
+.sf-btn.sf-on{border-width:1.5px}
+.sf-r.sf-on{background:var(--red-bg);border-color:var(--red)}
+.sf-a.sf-on{background:var(--amber-bg);border-color:var(--amber)}
+.sf-g.sf-on{background:var(--green-bg);border-color:var(--green)}
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:8px}
+.card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.av-r{background:var(--red-bg);color:var(--red)}
+.av-a{background:var(--amber-bg);color:var(--amber)}
+.av-g{background:var(--green-bg);color:var(--green)}
+.ci{flex:1;min-width:0}
+.cn{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cm{font-size:11px;color:var(--muted);margin-top:2px}
+.gpill{display:inline-block;font-size:10px;font-weight:600;padding:2px 6px;border-radius:20px;margin-left:4px;vertical-align:middle}
+.pk{background:var(--kern-bg);color:var(--kern)}
+.pc{background:var(--close-bg);color:var(--close)}
+.pco{background:var(--comp-bg);color:var(--comp)}
+.status-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.status-row{display:flex;align-items:center;gap:8px}
+.status-label{font-size:11px;color:var(--muted);width:72px;flex-shrink:0}
+.status-bar{flex:1;height:5px;border-radius:3px;background:var(--border);overflow:hidden}
+.status-fill{height:100%;border-radius:3px}
+.fill-r{background:var(--red)}
+.fill-a{background:var(--amber)}
+.fill-g{background:var(--green)}
+.status-days{font-size:11px;font-weight:500;width:60px;text-align:right;flex-shrink:0}
+.days-r{color:var(--red)}
+.days-a{color:var(--amber)}
+.days-g{color:var(--green)}
+.action-area{display:grid;gap:7px;margin-bottom:2px}
+.action-area.two{grid-template-columns:1fr 1fr}
+.action-area.one{grid-template-columns:1fr}
+.act-btn{padding:11px 8px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:center}
+.act-btn:active{opacity:.7}
+.act-r{background:var(--red-bg);color:var(--red)}
+.act-a{background:var(--amber-bg);color:var(--amber)}
+.act-g{background:var(--green-bg);color:var(--green)}
+.note-toggle{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px 0 0;display:block;-webkit-tap-highlight-color:transparent}
+.card-note{font-size:12px;color:var(--muted);padding-top:8px;line-height:1.5;display:none}
+.card-note.show{display:block}
+.empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:15px}
+.empty-i{font-size:36px;margin-bottom:10px}
+.week-day{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;padding:13px 3px 6px}
+.week-item{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:11px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.wi-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.wi-body{flex:1;min-width:0}
+.wi-name{font-size:14px;font-weight:500}
+.wi-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.wi-act{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;flex-shrink:0}
+.wi-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 13px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wi-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.wi-btn{flex-shrink:0;padding:9px 14px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.wi-btn:active{opacity:.7}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:100;animation:fi .15s}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border-radius:20px 20px 0 0;padding:22px 18px calc(var(--sb) + 22px);width:100%;animation:si .2s cubic-bezier(.32,1,.56,1)}
+@keyframes si{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:16px}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:0.5px solid var(--border);border-radius:12px;font-size:16px;background:var(--bg);color:var(--text);outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
+.field textarea{height:64px;resize:none;line-height:1.4}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+.btn-c{padding:13px;border:0.5px solid var(--border);border-radius:12px;background:none;font-size:16px;cursor:pointer;color:var(--muted);font-weight:500}
+.btn-s{padding:13px;border:none;border-radius:12px;background:var(--accent);color:var(--bg);font-size:16px;cursor:pointer;font-weight:600}
+.btn-s:disabled{opacity:.35}
+.dm-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;margin:0 auto 10px}
+.dm-name{font-size:19px;font-weight:700;text-align:center}
+.dm-sub{font-size:13px;color:var(--muted);text-align:center;margin-top:3px;margin-bottom:14px}
+.dm-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-top:0.5px solid var(--border);font-size:13px;gap:8px}
+.dm-l{color:var(--muted)}.dm-r{font-weight:500;text-align:right}
+.dm-note{font-size:13px;color:var(--muted);padding:8px 0;border-top:0.5px solid var(--border);line-height:1.5}
+.dm-btns{display:flex;gap:7px;margin-top:14px}
+.dm-del{padding:13px 14px;background:none;border:0.5px solid var(--red-bg);border-radius:12px;font-size:14px;cursor:pointer;color:var(--red)}
+.dm-edit{padding:13px 14px;background:none;border:0.5px solid var(--border);border-radius:12px;font-size:14px;cursor:pointer;color:var(--muted)}
+.dm-done{flex:1;padding:13px;background:var(--green-bg);color:var(--green);border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="ht">Tribu</div>
+    <div class="hs" id="hs"></div>
+  </div>
+  <button class="add-btn" onclick="openAdd()">+</button>
+</div>
+
+<div class="tabs">
+  <button class="tab on" id="tab-ov" onclick="sw('ov')">
+    <div class="tab-row">Aperçu</div><div class="tab-dot"></div>
+  </button>
+  <button class="tab" id="tab-wk" onclick="sw('wk')">
+    <div class="tab-row">Semaine</div><div class="tab-dot"></div>
+  </button>
+  <button class="tab" id="tab-kern" onclick="sw('kern')">
+    <div class="tab-row"><span class="tab-gd" style="background:var(--kern)"></span>Noyau</div><div class="tab-dot"></div>
+  </button>
+  <button class="tab" id="tab-close" onclick="sw('close')">
+    <div class="tab-row"><span class="tab-gd" style="background:var(--close)"></span>Proches</div><div class="tab-dot"></div>
+  </button>
+  <button class="tab" id="tab-comp" onclick="sw('comp')">
+    <div class="tab-row"><span class="tab-gd" style="background:var(--comp)"></span>Comp.</div><div class="tab-dot"></div>
+  </button>
+</div>
+
+<div class="page on" id="page-ov"></div>
+<div class="page" id="page-wk"></div>
+<div class="page" id="page-kern"></div>
+<div class="page" id="page-close"></div>
+<div class="page" id="page-comp"></div>
+<div id="mwrap"></div>
+
+<script>
+const CFG = {
+  kern:  {contactFreq:14, meetFreq:14, meetRequired:true,  label:'Noyau',       maxN:5,  pill:'pk',  color:'var(--kern)'},
+  close: {contactFreq:30, meetFreq:42, meetRequired:true,  label:'Proches',     maxN:15, pill:'pc',  color:'var(--close)'},
+  comp:  {contactFreq:60, meetFreq:null,meetRequired:false, label:'Compagnons', maxN:40, pill:'pco', color:'var(--comp)'},
+};
+
+let contacts = JSON.parse(localStorage.getItem('vrnd_v4') || '[]');
+let currentTab = 'ov';
+
+function save(){localStorage.setItem('vrnd_v4', JSON.stringify(contacts))}
+function daysAgo(d){return d ? Math.floor((Date.now()-new Date(d))/86400000) : 9999}
+function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function contactLeft(c){return CFG[c.group].contactFreq - daysAgo(c.lastContact)}
+function meetLeft(c){
+  const cfg=CFG[c.group];
+  if(!cfg.meetRequired) return null;
+  return cfg.meetFreq - daysAgo(c.lastMeet);
+}
+function urgency(c){
+  const cl=contactLeft(c), ml=meetLeft(c);
+  const worst = ml!==null ? Math.min(cl,ml) : cl;
+  return worst<0?'r':worst<=3?'a':'g';
+}
+function statusColor(d){return d<0?'r':d<=3?'a':'g'}
+function fillPct(d,freq){return Math.round(Math.max(0,Math.min(100,(d/freq)*100)))}
+
+function daysLabel(d){
+  if(d===null) return '';
+  if(d<0) return `${Math.abs(d)}j de retard`;
+  if(d===0) return "Aujourd'hui";
+  if(d===1) return 'Demain';
+  return `${d}j`;
+}
+
+function agoText(d){
+  const ago=daysAgo(d);
+  if(!d) return 'Jamais';
+  if(ago===0) return "Aujourd'hui";
+  if(ago===1) return 'Hier';
+  return `${ago}j passés`;
+}
+
+function sorted(list){
+  return [...list].sort((a,b)=>{
+    const wa=Math.min(contactLeft(a),meetLeft(a)??999);
+    const wb=Math.min(contactLeft(b),meetLeft(b)??999);
+    return wa-wb;
+  });
+}
+
+function cardHTML(c, showGroup=false){
+  const cfg=CFG[c.group];
+  const cl=contactLeft(c), ml=meetLeft(c);
+  const u=urgency(c);
+  const hasNote=c.note&&c.note.trim();
+
+  let statusHTML='<div class="status-rows">';
+  if(cfg.meetRequired){
+    const cc=statusColor(cl), cpct=fillPct(cl,cfg.contactFreq);
+    statusHTML+=`<div class="status-row">
+      <span class="status-label">Appeler</span>
+      <div class="status-bar"><div class="status-fill fill-${cc}" style="width:${cpct}%"></div></div>
+      <span class="status-days days-${cc}">${daysLabel(cl)}</span>
+    </div>`;
+    const mc=statusColor(ml), mpct=fillPct(ml,cfg.meetFreq);
+    statusHTML+=`<div class="status-row">
+      <span class="status-label">Se voir</span>
+      <div class="status-bar"><div class="status-fill fill-${mc}" style="width:${mpct}%"></div></div>
+      <span class="status-days days-${mc}">${daysLabel(ml)}</span>
+    </div>`;
+  } else {
+    const cc=statusColor(cl), cpct=fillPct(cl,cfg.contactFreq);
+    statusHTML+=`<div class="status-row">
+      <span class="status-label">Messager</span>
+      <div class="status-bar"><div class="status-fill fill-${cc}" style="width:${cpct}%"></div></div>
+      <span class="status-days days-${cc}">${daysLabel(cl)}</span>
+    </div>`;
+  }
+  statusHTML+='</div>';
+
+  let actionHTML='';
+  if(cfg.meetRequired){
+    const cc=statusColor(cl), mc=statusColor(ml);
+    actionHTML=`<div class="action-area two">
+      <button class="act-btn act-${cc}" onclick="event.stopPropagation();logContact(${c.id},'call')">Appeler</button>
+      <button class="act-btn act-${mc}" onclick="event.stopPropagation();logContact(${c.id},'meet')">Se voir</button>
+    </div>`;
+  } else {
+    const cc=statusColor(cl);
+    actionHTML=`<div class="action-area one">
+      <button class="act-btn act-${cc}" onclick="event.stopPropagation();logContact(${c.id},'msg')">Messager</button>
+    </div>`;
+  }
+
+  return `<div class="card">
+    <div class="card-top">
+      <div class="av av-${u}">${initials(c.name)}</div>
+      <div class="ci">
+        <div class="cn">${esc(c.name)}${showGroup?`<span class="gpill ${cfg.pill}">${cfg.label}</span>`:''}</div>
+        <div class="cm">${agoText(c.lastContact)}${c.lastMeet?' · Vu : '+agoText(c.lastMeet):''}</div>
+      </div>
+    </div>
+    ${statusHTML}
+    ${actionHTML}
+    ${hasNote?`<button class="note-toggle" onclick="toggleNote(this)">&#9658; Note</button><div class="card-note">${esc(c.note)}</div>`:''}
+    <button class="note-toggle" onclick="openDetail(${c.id})">Détails & modifier</button>
+  </div>`;
+}
+
+function toggleNote(btn){
+  const note=btn.nextElementSibling;
+  const open=note.classList.toggle('show');
+  btn.innerHTML=open?'&#9660; Note':'&#9658; Note';
+}
+
+function logContact(id,type){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  const today=new Date().toISOString().split('T')[0];
+  const typeLabel=type==='meet'?'Vu(e)':type==='call'?'Appelé(e)':'Messagé(e)';
+  mwrap(`<div class="modal-bg" onclick="if(event.target.classList.contains('modal-bg'))closeModal()">
+    <div class="modal">
+      <h3>${typeLabel} — ${esc(c.name)}</h3>
+      <div class="field"><label>Date</label>
+        <input id="d-date" type="date" value="${today}" max="${today}">
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Laisse la date d'aujourd'hui si c'est aujourd'hui.</div>
+      <div class="modal-btns">
+        <button class="btn-c" onclick="closeModal()">Annuler</button>
+        <button class="btn-s" onclick="confirmLog(${id},'${type}')">Enregistrer</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function confirmLog(id,type){
+  const val=document.getElementById('d-date').value;
+  if(!val) return;
+  const d=new Date(val); d.setHours(12,0,0,0);
+  contacts=contacts.map(c=>{
+    if(c.id!==id) return c;
+    const updated={...c, lastContact:d.toISOString()};
+    if(type==='meet') updated.lastMeet=d.toISOString();
+    return updated;
+  });
+  save(); closeModal(); render();
+}
+
+function buildPage(list, showGroup=false, group=null){
+  const cfg=group?CFG[group]:null;
+  let h='';
+  if(cfg){
+    const over=list.length>cfg.maxN;
+    if(over) h+=`<div class="dunbar-warn">&#9888; ${list.length} sur max ${cfg.maxN}. Déplace quelqu'un vers un autre groupe.</div>`;
+    else h+=`<div class="sl" style="padding-top:8px">${list.length} sur max ${cfg.maxN} <span class="sl-count">&#183; ${cfg.maxN-list.length} place${cfg.maxN-list.length===1?'':'s'} libre${cfg.maxN-list.length===1?'':'s'}</span></div>`;
+  }
+  if(!list.length) return h+`<div class="empty"><div class="empty-i">&#128101;</div>Personne encore.<br>Appuie sur + pour ajouter.</div>`;
+  const s=sorted(list);
+  const r=s.filter(c=>urgency(c)==='r'), a=s.filter(c=>urgency(c)==='a'), g=s.filter(c=>urgency(c)==='g');
+
+  // filter state per page
+  const pageId = group||'ov';
+  const activeFilter = pageFilters[pageId]||null;
+
+  h+=`<div class="stat-filters">
+    <button class="sf-btn sf-r ${activeFilter==='r'?'sf-on':''}" onclick="setFilter('${pageId}','r')">${r.length} En retard</button>
+    <button class="sf-btn sf-a ${activeFilter==='a'?'sf-on':''}" onclick="setFilter('${pageId}','a')">${a.length} Bientôt</button>
+    <button class="sf-btn sf-g ${activeFilter==='g'?'sf-on':''}" onclick="setFilter('${pageId}','g')">${g.length} À jour</button>
+  </div>`;
+
+  const show = activeFilter ? s.filter(c=>urgency(c)===activeFilter) : s;
+
+  if(!activeFilter){
+    if(r.length) h+=`<div class="sl">En retard</div>`+r.map(c=>cardHTML(c,showGroup)).join('');
+    if(a.length) h+=`<div class="sl">Bientôt</div>`+a.map(c=>cardHTML(c,showGroup)).join('');
+    if(g.length) h+=`<div class="sl">À jour</div>`+g.map(c=>cardHTML(c,showGroup)).join('');
+  } else {
+    if(!show.length) h+=`<div class="empty" style="padding:2rem 0">Personne dans cette catégorie.</div>`;
+    else h+=show.map(c=>cardHTML(c,showGroup)).join('');
+  }
+  return h;
+}
+
+function weekHTML(){
+  if(!contacts.length) return `<div class="empty"><div class="empty-i">&#128197;</div>Ajoute des personnes pour voir ton planning.</div>`;
+
+  const items=[];
+  for(const c of contacts){
+    const cl=contactLeft(c), ml=meetLeft(c);
+    const cfg=CFG[c.group];
+    if(cfg.meetRequired){
+      const meetUrgent=ml!==null&&ml<=cl;
+      if(meetUrgent) items.push({c,type:'meet',days:ml,label:'Se voir'});
+      else items.push({c,type:'call',days:cl,label:'Appeler'});
+    } else {
+      items.push({c,type:'msg',days:cl,label:'Messager'});
+    }
+  }
+  items.sort((a,b)=>a.days-b.days);
+
+  const late=items.filter(i=>i.days<0);
+  const today2=items.filter(i=>i.days===0);
+  const soon=items.filter(i=>i.days>0&&i.days<=3);
+  const ok=items.filter(i=>i.days>3);
+
+  function wcard(item){
+    const {c,type,days,label}=item;
+    const cfg=CFG[c.group];
+    const col=days<0?'var(--red)':days<=3?'var(--amber)':'var(--green)';
+    const btnBg=days<0?'var(--red-bg)':days<=3?'var(--amber-bg)':'var(--green-bg)';
+    const btnCol=days<0?'var(--red)':days<=3?'var(--amber)':'var(--green)';
+    const sub=type==='meet'?'Vu : '+agoText(c.lastMeet):'Contact : '+agoText(c.lastContact);
+    return `<div class="wi-card">
+      <div class="wi-left">
+        <div class="wi-dot" style="background:${col}"></div>
+        <div class="wi-body">
+          <div class="wi-name">${esc(c.name)} <span class="gpill ${cfg.pill}" style="font-size:9px">${cfg.label}</span></div>
+          <div class="wi-sub">${sub}</div>
+        </div>
+      </div>
+      <button class="wi-btn" style="background:${btnBg};color:${btnCol}" onclick="logContact(${c.id},'${type}')">${label}</button>
+    </div>`;
+  }
+
+  function wsection(title,list,color){
+    if(!list.length) return '';
+    return `<div class="week-day" style="color:${color}">${title} <span style="font-weight:400;text-transform:none;letter-spacing:0">(${list.length})</span></div>`+list.map(wcard).join('');
+  }
+
+  let h='<div style="padding-top:4px">';
+  h+=wsection('En retard',late,'var(--red)');
+  h+=wsection("Aujourd'hui",today2,'var(--amber)');
+  h+=wsection('Dans 3 jours',soon,'var(--amber)');
+  h+=wsection('Cette semaine',ok,'var(--muted)');
+  h+='</div>';
+  if(late.length) h+=`<div style="font-size:12px;color:var(--red);padding:8px 3px 0;font-weight:500">${late.length} personne${late.length===1?'':'s'} en retard.</div>`;
+  return h;
+}
+
+const pageFilters={};
+function setFilter(page,f){
+  pageFilters[page]=pageFilters[page]===f?null:f;
+  render();
+  // scroll to top of active page
+  const pg=document.getElementById('page-'+(page==='ov'?'ov':page==='wk'?'wk':page));
+  if(pg) pg.scrollTop=0;
+}
+
+function render(){
+  const d=new Date();
+  const ds=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('hs').textContent=ds.charAt(0).toUpperCase()+ds.slice(1);
+  document.getElementById('page-ov').innerHTML=buildPage(contacts,true);
+  document.getElementById('page-wk').innerHTML=weekHTML();
+  ['kern','close','comp'].forEach(g=>{
+    document.getElementById('page-'+g).innerHTML=buildPage(contacts.filter(c=>c.group===g),false,g);
+    document.getElementById('tab-'+g).classList.toggle('urgent',contacts.filter(c=>c.group===g).some(c=>urgency(c)==='r'));
+  });
+  document.getElementById('tab-ov').classList.toggle('urgent',contacts.some(c=>urgency(c)==='r'));
+  document.getElementById('tab-wk').classList.toggle('urgent',contacts.some(c=>urgency(c)==='r'));
+}
+
+function sw(name){
+  currentTab=name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  document.getElementById('page-'+name).classList.add('on');
+}
+
+function openAdd(){
+  const defGroup=['kern','close','comp'].includes(currentTab)?currentTab:'kern';
+  mwrap(`<div class="modal-bg" onclick="if(event.target.classList.contains('modal-bg'))closeModal()">
+    <div class="modal">
+      <h3>Ajouter quelqu'un</h3>
+      <div class="field"><label>Prénom</label>
+        <input id="f-name" type="text" placeholder="Jean Dupont" autocomplete="name"
+          oninput="document.getElementById('f-save').disabled=!this.value.trim()">
+      </div>
+      <div class="field"><label>Groupe</label>
+        <select id="f-group">
+          <option value="kern" ${defGroup==='kern'?'selected':''}>Noyau &#8212; appel/rencontre, max 5</option>
+          <option value="close" ${defGroup==='close'?'selected':''}>Proches &#8212; appel/rencontre, max 15</option>
+          <option value="comp" ${defGroup==='comp'?'selected':''}>Compagnons &#8212; message ok, max 40</option>
+        </select>
+      </div>
+      <div class="field"><label>Note (optionnel)</label>
+        <textarea id="f-note" placeholder="Quoi de neuf ?"></textarea>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-c" onclick="closeModal()">Annuler</button>
+        <button class="btn-s" id="f-save" onclick="doAdd()" disabled>Ajouter</button>
+      </div>
+    </div>
+  </div>`);
+  setTimeout(()=>document.getElementById('f-name')?.focus(),50);
+}
+
+function doAdd(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name) return;
+  const group=document.getElementById('f-group').value;
+  contacts.push({id:Date.now(),name,group,lastContact:null,lastMeet:null,note:document.getElementById('f-note').value.trim()});
+  save(); closeModal(); sw(group); render();
+}
+
+function openDetail(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  const cfg=CFG[c.group];
+  const u=urgency(c);
+  const avBg=u==='r'?'var(--red-bg)':u==='a'?'var(--amber-bg)':'var(--green-bg)';
+  const avCol=u==='r'?'var(--red)':u==='a'?'var(--amber)':'var(--green)';
+  const cl=contactLeft(c), ml=meetLeft(c);
+  const fmtDate=d=>d?new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'Jamais';
+  mwrap(`<div class="modal-bg" onclick="if(event.target.classList.contains('modal-bg'))closeModal()">
+    <div class="modal" style="max-height:85vh;overflow-y:auto">
+      <div class="dm-av" style="background:${avBg};color:${avCol}">${initials(c.name)}</div>
+      <div class="dm-name">${esc(c.name)}</div>
+      <div class="dm-sub"><span class="gpill ${cfg.pill}">${cfg.label}</span></div>
+      <div class="dm-row"><span class="dm-l">Dernier contact</span><span class="dm-r">${fmtDate(c.lastContact)}</span></div>
+      <div class="dm-row"><span class="dm-l">Prochain appel</span><span class="dm-r" style="color:${cl<0?'var(--red)':cl<=3?'var(--amber)':'var(--green)'}">${daysLabel(cl)}</span></div>
+      ${cfg.meetRequired?`
+      <div class="dm-row"><span class="dm-l">Dernière rencontre</span><span class="dm-r">${fmtDate(c.lastMeet)}</span></div>
+      <div class="dm-row"><span class="dm-l">Prochaine rencontre</span><span class="dm-r" style="color:${ml<0?'var(--red)':ml<=3?'var(--amber)':'var(--green)'}">${daysLabel(ml)}</span></div>`:''}
+      ${c.note?`<div class="dm-note"><strong>Note :</strong> ${esc(c.note)}</div>`:''}
+      <div class="dm-btns">
+        <button class="dm-done" onclick="closeModal();logContact(${c.id},'${cfg.meetRequired?'call':'msg'}')">+ Contact</button>
+        <button class="dm-edit" onclick="openEdit(${c.id})">&#9998;</button>
+        <button class="dm-del" onclick="if(confirm('Supprimer ?')){contacts=contacts.filter(x=>x.id!==${c.id});save();closeModal();render()}">&#10005;</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function openEdit(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  mwrap(`<div class="modal-bg" onclick="if(event.target.classList.contains('modal-bg'))closeModal()">
+    <div class="modal">
+      <h3>Modifier</h3>
+      <div class="field"><label>Prénom</label>
+        <input id="e-name" type="text" value="${esc(c.name)}" autocomplete="name">
+      </div>
+      <div class="field"><label>Groupe</label>
+        <select id="e-group">
+          <option value="kern" ${c.group==='kern'?'selected':''}>Noyau &#8212; appel/rencontre, max 5</option>
+          <option value="close" ${c.group==='close'?'selected':''}>Proches &#8212; appel/rencontre, max 15</option>
+          <option value="comp" ${c.group==='comp'?'selected':''}>Compagnons &#8212; message ok, max 40</option>
+        </select>
+      </div>
+      <div class="field"><label>Note</label>
+        <textarea id="e-note">${esc(c.note||'')}</textarea>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-c" onclick="openDetail(${id})">Retour</button>
+        <button class="btn-s" onclick="doEdit(${id})">Enregistrer</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function doEdit(id){
+  contacts=contacts.map(c=>c.id===id?{...c,
+    name:document.getElementById('e-name').value.trim()||c.name,
+    group:document.getElementById('e-group').value,
+    note:document.getElementById('e-note').value.trim(),
+  }:c);
+  save(); closeModal(); render();
+}
+
+function mwrap(h){document.getElementById('mwrap').innerHTML=h}
+function closeModal(){document.getElementById('mwrap').innerHTML=''}
+
+const nd=new Date();
+const ds=nd.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+document.getElementById('hs').textContent=ds.charAt(0).toUpperCase()+ds.slice(1);
+render();
+</script>
+</body>
+</html>
